@@ -14,10 +14,14 @@ namespace LAB4_MO
         private double[] a;
         private double b;
         private string[] rasp_x; // расположение иксов
+        private double[] c_no_sort;
+        private double[] a_no_sort;
 
         public lab4_balash(double[] c, double[] a, double b)
         {
             int n = c.Length;
+            c_no_sort = (double[])c.Clone(); // если напишем просто c_no_sort = с, то мы приравняем ссылку на массив c, в итоге у нас c_no_sort и c будут совпадать.
+            a_no_sort = (double[])a.Clone();
             string[] nabor_x = new string[] { "X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8" };
             for (int i = 0; i < n - 1; i++)
             {
@@ -55,7 +59,7 @@ namespace LAB4_MO
             double[] pred_el = new double[8];
 
 
-            if (check_root(pred_el)) 
+            if (check_root(pred_el, a)) 
             {
                 solve_roots.Add(pred_el);
                 return solve_roots;
@@ -89,7 +93,7 @@ namespace LAB4_MO
 
                         pred_el[t] = 1;
 
-                        if (check_root(pred_el))
+                        if (check_root(pred_el,a))
                         {
                             solve_roots.Add(pred_el);
                             flag = 1;
@@ -137,41 +141,68 @@ namespace LAB4_MO
             return itog_solve;
         }
 
-        private bool check_root(double[] root)
+        private bool check_root(double[] root, double[] a_)
         {
             double sum = 0;
             for (int i = 0; i < c.Length; i++)
             {
-                sum += a[i] * root[i];
+                sum += a_[i] * root[i];
             }
             return sum<=b;
         }
 
+        public void perebor(double[] root, int pos = 0) // метод полного перебора
+        {
+            if (pos == root.Length)
+            {
+                if (check_root(root, a_no_sort))
+                {
+                    double F = 0;
+                    for (int j = 0; j < root.Length; j++)
+                    {
+                        Console.Write($"X{j + 1}: {root[j]}   ");
+                        F += c_no_sort[j] * root[j];
+                        if (j == root.Length - 1) Console.Write($"   F: {F}");
+                    }
+                    Console.WriteLine();
+                }
+                return;
+            }
+            root[pos] = 0; 
+            perebor(root, pos + 1); 
+            root[pos] = 1; 
+            perebor(root, pos + 1);
+        }
     }
     internal class Program
     {
         static void Main(string[] args)
         {
             double[] c = new double[] { 7, 7, 9, 8, 10, 2, 10, 3 };
+            double[] dubl_c = new double[] { 7, 7, 9, 8, 10, 2, 10, 3 }; // дубликат массива c, нужен из-за того что c изменяется и не сохраняет первоначальный вид
             double[] a = new double[] { 4, 7, -2, -6, 5, 2, 4, -3 };
             double b = -10;
             lab4_balash k = new lab4_balash(c, a, b);
 
             List<double[]> list = k.Solution_Balash();
-
-            for(int i = 0;i < list.Count;i++)
+            
+            Console.WriteLine("Метод Балаша:");
+            for (int i = 0; i < list.Count; i++)
             {
                 double F = 0;
-                for (int j = 0; j < 8; j++) 
+                for (int j = 0; j < 8; j++)
                 {
-                    Console.Write($"X{j+1}: {list[i][j]}   ");
-                    F+= c[j] * list[i][j];
-                    if(j ==7) Console.Write($"   F: {F}");    
-                } 
-                Console.WriteLine();      
+                    Console.Write($"X{j + 1}: {list[i][j]}   ");
+                    F += dubl_c[j] * list[i][j];
+                    if (j == 7) Console.Write($"   F: {F}");
+                }
+                Console.WriteLine();
             }
 
-        
+            Console.WriteLine();
+            Console.WriteLine("Метод полного перебора:");
+            k.perebor(new double[8]);
+            Console.WriteLine();
         }
     }
 }
